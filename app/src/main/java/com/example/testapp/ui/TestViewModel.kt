@@ -3,7 +3,6 @@ package com.example.testapp.ui
 import androidx.lifecycle.ViewModel
 import com.example.testapp.dataModel.TestData
 import com.example.testapp.network.TestApiManager
-import com.example.testapp.network.TestApiModule
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.subjects.BehaviorSubject
 import retrofit2.Call
@@ -15,7 +14,6 @@ import javax.inject.Inject
 class TestViewModel @Inject constructor(
     private val testApiManager: TestApiManager
 ): ViewModel() {
-    // TODO: Implement the ViewModel
 
     val state: BehaviorSubject<TestState> = BehaviorSubject.create()
 
@@ -38,11 +36,20 @@ class TestViewModel @Inject constructor(
             ) {
                 state.onNext(
                     response.body()?.let {
-                        TestState.DataLoaded(it)
+                        TestState.DataLoaded(it, buildCellList(it))
                     } ?: TestState.Error
                 )
             }
         })
     }
 
+
+    private fun buildCellList(items: List<TestData>): List<TestListCell> {
+        val elements = mutableListOf<TestListCell>()
+        items.forEach {
+            elements.add(TestListCell.Item(it))
+            elements.add(TestListCell.Divider)
+        }
+        return elements
+    }
 }

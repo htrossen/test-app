@@ -15,20 +15,24 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 
 @AndroidEntryPoint
-class TestFragment : Fragment() {
+class TestFragment : TestActionCallback, Fragment() {
 
     private val disposables = CompositeDisposable()
 
     private val viewModel: TestViewModel by viewModels()
 
+    // Option for RecyclerView or EpoxyRecyclerView
+    private val showEpoxy: Boolean = false
+
     private val controller = TestController()
+
+    private lateinit var adapter: TestAdapter
 
     private var binding: TestFragmentBinding by AutoClearOnDestroyProperty()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO: Use the ViewModel
         viewModel.loadData()
     }
 
@@ -43,7 +47,6 @@ class TestFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // TODO: Subscribe to observables
         disposables.add(
             viewModel
                 .state
@@ -60,7 +63,18 @@ class TestFragment : Fragment() {
                 )
         )
 
-        binding.list.adapter = controller.adapter
+        adapter = TestAdapter(this)
+
+        binding.epoxyList.adapter = controller.adapter
+        binding.list.adapter = adapter
+
+        if (showEpoxy) {
+            binding.epoxyList.isVisible = true
+            binding.list.isVisible = false
+        } else {
+            binding.epoxyList.isVisible = false
+            binding.list.isVisible = true
+        }
 
         binding.errorButton.setOnClickListener {
             displayState(showLoading = true)
@@ -72,6 +86,7 @@ class TestFragment : Fragment() {
         when (state) {
             is TestState.DataLoaded -> {
                 controller.setData(state.data, ::handleAction)
+                adapter.update(state.elements)
                 displayState(showData = true)
             }
             is TestState.Loading -> displayState(showLoading = true)
@@ -94,6 +109,10 @@ class TestFragment : Fragment() {
             // TODO
             is TestAction.ItemClicked -> {}
         }
+    }
+
+    override fun itemClicked(id: String) {
+        handleAction(TestAction.ItemClicked(id))
     }
 
     override fun onDestroyView() {
