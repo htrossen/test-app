@@ -21,11 +21,6 @@ class TestFragment : TestActionCallback, Fragment() {
 
     private val viewModel: TestViewModel by viewModels()
 
-    // Option for RecyclerView or EpoxyRecyclerView
-    private val showEpoxy: Boolean = false
-
-    private val controller = TestController()
-
     private lateinit var adapter: TestAdapter
 
     private var binding: TestFragmentBinding by AutoClearOnDestroyProperty()
@@ -65,16 +60,7 @@ class TestFragment : TestActionCallback, Fragment() {
 
         adapter = TestAdapter(this)
 
-        binding.epoxyList.adapter = controller.adapter
         binding.list.adapter = adapter
-
-        if (showEpoxy) {
-            binding.epoxyList.isVisible = true
-            binding.list.isVisible = false
-        } else {
-            binding.epoxyList.isVisible = false
-            binding.list.isVisible = true
-        }
 
         binding.errorButton.setOnClickListener {
             displayState(showLoading = true)
@@ -85,7 +71,6 @@ class TestFragment : TestActionCallback, Fragment() {
     private fun renderState(state: TestState) {
         when (state) {
             is TestState.DataLoaded -> {
-                controller.setData(state.data, ::handleAction)
                 adapter.update(state.elements)
                 displayState(showData = true)
             }
@@ -104,15 +89,8 @@ class TestFragment : TestActionCallback, Fragment() {
         binding.error.isVisible = showError
     }
 
-    private fun handleAction(action: TestAction) {
-        when (action) {
-            // TODO
-            is TestAction.ItemClicked -> {}
-        }
-    }
-
     override fun itemClicked(id: String) {
-        handleAction(TestAction.ItemClicked(id))
+        // TODO
     }
 
     override fun onDestroyView() {

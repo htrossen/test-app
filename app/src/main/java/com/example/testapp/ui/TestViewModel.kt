@@ -1,9 +1,12 @@
 package com.example.testapp.ui
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import com.example.testapp.R
 import com.example.testapp.dataModel.TestData
 import com.example.testapp.network.TestApiManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.reactivex.subjects.BehaviorSubject
 import retrofit2.Call
 import retrofit2.Callback
@@ -12,6 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TestViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val testApiManager: TestApiManager
 ): ViewModel() {
 
@@ -36,7 +40,7 @@ class TestViewModel @Inject constructor(
             ) {
                 state.onNext(
                     response.body()?.let {
-                        TestState.DataLoaded(it, buildCellList(it))
+                        TestState.DataLoaded(buildCellList(it))
                     } ?: TestState.Error
                 )
             }
@@ -46,6 +50,8 @@ class TestViewModel @Inject constructor(
 
     private fun buildCellList(items: List<TestData>): List<TestListCell> {
         val elements = mutableListOf<TestListCell>()
+        elements.add(TestListCell.Header(context.getString(R.string.this_is_the_header)))
+        elements.add(TestListCell.Divider)
         items.forEach {
             elements.add(TestListCell.Item(it))
             elements.add(TestListCell.Divider)
