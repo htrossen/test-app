@@ -6,10 +6,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.testapp.dataModel.TestData
 import com.example.testapp.databinding.DividerBinding
+import com.example.testapp.databinding.TestHeaderBinding
 import com.example.testapp.databinding.TestItemBinding
 
-private const val ITEM_VIEW_TYPE_ITEM = 0
-private const val ITEM_VIEW_TYPE_DIVIDER = 1
+private const val ITEM_VIEW_TYPE_HEADER = 0
+private const val ITEM_VIEW_TYPE_ITEM = 1
+private const val ITEM_VIEW_TYPE_DIVIDER = 2
 
 
 interface TestActionCallback {
@@ -30,6 +32,12 @@ class TestAdapter(private val clickListener: TestActionCallback) :
         result.dispatchUpdatesTo(this)
     }
 
+    class HeaderViewHolder(private val binding: TestHeaderBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bindData(title: String) {
+            binding.title.text = title
+        }
+    }
+
     class ItemViewHolder(private val binding: TestItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bindData(item: TestData, callback: TestActionCallback) {
             binding.header.text = item.header
@@ -40,12 +48,14 @@ class TestAdapter(private val clickListener: TestActionCallback) :
         }
     }
 
-    class DividerViewHolder(private val binding: DividerBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bindData() {}
-    }
+    class DividerViewHolder(private val binding: DividerBinding) : RecyclerView.ViewHolder(binding.root) {}
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
+            ITEM_VIEW_TYPE_HEADER -> {
+                val binding = TestHeaderBinding.inflate(LayoutInflater.from(viewGroup.context), viewGroup, false)
+                HeaderViewHolder(binding)
+            }
             ITEM_VIEW_TYPE_ITEM -> {
                 val binding = TestItemBinding.inflate(LayoutInflater.from(viewGroup.context), viewGroup, false)
                 ItemViewHolder(binding)
@@ -54,13 +64,13 @@ class TestAdapter(private val clickListener: TestActionCallback) :
                 val binding = DividerBinding.inflate(LayoutInflater.from(viewGroup.context), viewGroup, false)
                 DividerViewHolder(binding)
             }
-
             else -> throw ClassCastException("Unknown viewType $viewType")
         }
     }
 
     override fun getItemViewType(position: Int): Int {
         return when (elements[position]) {
+            is TestListCell.Header -> ITEM_VIEW_TYPE_HEADER
             is TestListCell.Item -> ITEM_VIEW_TYPE_ITEM
             is TestListCell.Divider -> ITEM_VIEW_TYPE_DIVIDER
         }
@@ -68,8 +78,9 @@ class TestAdapter(private val clickListener: TestActionCallback) :
 
     override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
         when (viewHolder) {
+            is HeaderViewHolder -> viewHolder.bindData((elements[position] as TestListCell.Header).title)
             is ItemViewHolder -> viewHolder.bindData((elements[position] as TestListCell.Item).item, clickListener)
-            is DividerViewHolder -> viewHolder.bindData()
+            is DividerViewHolder -> {} // No data to bind
         }
     }
 
@@ -98,6 +109,8 @@ class TestDiffUtil(
 
         return if (oldItem is TestListCell.Item && newItem is TestListCell.Item) {
             oldItem.item.id == newItem.item.id
+        } else if (oldItem is TestListCell.Header && newItem is TestListCell.Header) {
+            oldItem.title == newItem.title
         } else {
             oldItem is TestListCell.Divider && newItem is TestListCell.Divider
         }
@@ -106,5 +119,6 @@ class TestDiffUtil(
 
 sealed class TestListCell {
     data class Item(val item: TestData) : TestListCell()
+    data class Header(val title: String) : TestListCell()
     object Divider : TestListCell()
 }
