@@ -1,6 +1,3 @@
 <resources>
     <string name="app_name">TestApp</string>
-    <string name="oops_something_went_wrong">Oops something went wrong</string>
-    <string name="try_again">Try again</string>
-    <string name="this_is_the_header">This is the header</string>
 </resources>
