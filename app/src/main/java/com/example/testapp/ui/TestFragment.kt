@@ -15,7 +15,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 
 @AndroidEntryPoint
-class TestFragment : TestActionCallback, Fragment() {
+class TestFragment : Fragment() {
+    // TODO -- Callbacks
 
     private val disposables = CompositeDisposable()
 
@@ -58,7 +59,7 @@ class TestFragment : TestActionCallback, Fragment() {
                 )
         )
 
-        adapter = TestAdapter(this)
+        adapter = TestAdapter()
 
         binding.list.adapter = adapter
 
@@ -87,10 +88,6 @@ class TestFragment : TestActionCallback, Fragment() {
         binding.data.isVisible = showData
         binding.loading.isVisible = showLoading
         binding.error.isVisible = showError
-    }
-
-    override fun itemClicked(id: String) {
-        // TODO
     }
 
     override fun onDestroyView() {
