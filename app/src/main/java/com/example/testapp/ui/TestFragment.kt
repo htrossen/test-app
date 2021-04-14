@@ -20,7 +20,7 @@ class TestFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel.loadData()
+        // TODO use viewModel
     }
 
     override fun onCreateView(
