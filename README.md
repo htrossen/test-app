@@ -1,8 +1,9 @@
 # test-app
 Practice Android Things
 
+Emptyish Project ready for the following:
+
 - Data Binding
 - Hilt DI
-- Epoxy RecyclerView
+- RecyclerView
 - Retrofit with Gson
-- Flipper Network Inspection
