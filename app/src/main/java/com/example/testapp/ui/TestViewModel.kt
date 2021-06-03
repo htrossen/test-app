@@ -4,10 +4,9 @@ import androidx.lifecycle.ViewModel
 import com.example.testapp.dataModel.TestData
 import com.example.testapp.network.TestApiManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,39 +16,29 @@ class TestViewModel @Inject constructor(
 
     val state: BehaviorSubject<TestState> = BehaviorSubject.create()
 
+    private val compositeDisposable = CompositeDisposable()
+
     init {
         state.onNext(TestState.Loading)
     }
 
     fun loadData() {
-
-        testApiManager.getData().enqueue(object : Callback<List<TestData>> {
-            override fun onFailure(call: Call<List<TestData>>, t: Throwable) {
-                state.onNext(
-                    TestState.Error
-                )
-            }
-
-            override fun onResponse(
-                call: Call<List<TestData>>,
-                response: Response<List<TestData>>
-            ) {
-                state.onNext(
-                    response.body()?.let {
-                        TestState.DataLoaded(it, buildCellList(it))
-                    } ?: TestState.Error
-                )
-            }
-        })
+        compositeDisposable.add(testApiManager.getData()
+            .subscribeOn(Schedulers.io())
+            .subscribe(::handleResults, ::handleError)
+        )
     }
 
-
-    private fun buildCellList(items: List<TestData>): List<TestListCell> {
+    private fun handleResults(items: List<TestData>) {
         val elements = mutableListOf<TestListCell>()
         items.forEach {
             elements.add(TestListCell.Item(it))
             elements.add(TestListCell.Divider)
         }
-        return elements
+        state.onNext(TestState.DataLoaded(items, elements))
+    }
+
+    private fun handleError(t: Throwable) {
+        state.onNext(TestState.Error)
     }
 }
